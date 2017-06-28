@@ -38,6 +38,12 @@ $app->group(['prefix' => 'api/v1/'], function ($app) {
         });
     });
 
+    $app->group(['prefix' => 'tools/'], function ($app) {
+      $app->group(['prefix' => 'analytics/'], function ($app) {
+          $app->get('/', 'ToolController@Analytics');
+      });
+    });
+
     $app->group(['prefix' => 'guests/'], function ($app) {
         $app->post('/', 'GuestController@createGuest');
         $app->post('/verify', 'GuestController@verifyGuest');
