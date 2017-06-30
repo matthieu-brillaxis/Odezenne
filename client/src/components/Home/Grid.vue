@@ -58,6 +58,7 @@
         twitterFansCount: 5,
         posts: [],
         instagramFeed: [],
+        instaPaginationParam: '',
         facebookFeed: [],
         facebookPaginationParam: '',
         youtubePaginationParam: '',
@@ -123,6 +124,7 @@
             if (respInstagramFeed.data.valid) {
               temp.push(...respInstagramFeed.data.posts);
               this.instagramFeed = respInstagramFeed.data.posts;
+              this.instaPaginationParam = `?max_id=${this.posts[this.posts.length - 1].id}`;
             }
 
             this.shufflePosts(temp);

@@ -206,25 +206,30 @@ class SocialController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function instagramFeed()
+    public function instagramFeed(Request $request)
     {
-        $token = Settings::where('label', 'instagram_token')->limit(1)->pluck('value')[0];
+        $page = $request->input('page') ? $request->input('page') : null;
+        $token = Settings::where('label', 'instagram_token')->limit(1)->pluck('value');
         $max_results = Settings::where('label', 'instagram_max_results')->limit(1)->pluck('value')[0];
-
-        $url = "https://api.instagram.com/v1/users/self/?access_token=$token";
+        if (empty($token) || $token[0] === '') {
+          return response()->json(array('valid' => false));
+        }
+        $url = "https://api.instagram.com/v1/users/self/?access_token=$token[0]";
 
         $posts = [];
 
         $data = $this->curlfunction($url);
 
         $userId = $data['data']['id'];
+        if ($page) {
+          $json = file_get_contents($page . "&count=$max_results");
+        } else {
+          $json = file_get_contents("https://api.instagram.com/v1/users/$userId/media/recent/?access_token=" . $token[0] . "&count=$max_results");
+        }
 
-        $json_profile = file_get_contents("https://api.instagram.com/v1/users/$userId/?access_token=$token");
-        $json = file_get_contents("https://api.instagram.com/v1/users/$userId/media/recent/?access_token=" . $token . "&$max_results");
-        $a_json_profile = json_decode($json_profile, true);
         $a_json = json_decode($json, true);
-
         $i = 0;
+
         foreach ($a_json['data'] as $key => $value) {
             if ($i < $max_results) {
               $posts[$i]['id'] = $value['id'];
@@ -236,6 +241,9 @@ class SocialController extends Controller
               $i++;
             }
         }
+
+        $a_json_pagination = $a_json['pagination']['next_url'];
+
 
         return response()->json(array('valid' => true, 'posts' => $posts));
     }
